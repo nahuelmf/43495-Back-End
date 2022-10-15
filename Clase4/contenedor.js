@@ -5,55 +5,45 @@ class Contenedor {
         this.fileName = fileName;
         this.objects = this.readData(this.fileName) || [];
     }
-    //Genera ID
-    async generateId() {
-        try {
-            this.objects = await this.getAll() || [];
-            let maxId = this.objects.length;
-            this.objects.forEach(el => {
-                el.id > maxId ? maxId = el.id : maxId
-            })
-            return maxId + 1;
-        } catch (err) {
-            console.log(err);
+    async createIfNotExist(){
+        try{
+            await fs.promises.access(this.fileName)
+        }catch(err){
+            await fs.promises.writeFile(this.fileName, '[]', 'utf8');
         }
     }
     //Guarda un objeto
-    async save(obj) {
+    async save(content){
         try {
-            const readFile = await this.getAll();
-            if (!readFile) {
-                obj.id = await this.generateId();
-                this.objects.push(obj);
-                this.writeData(this.objects);
-                return obj.id;
+            const data = await this.getAll();
+            content.id = (data[data.length - 1]?.id || 0) + 1;
+            data.push(content);
+            await fs.promises.writeFile(this.fileName, JSON.stringify(data, null, 2), 'utf8');
+        } catch (error) {
+            if(error.message.includes('ENOENT')){
+                await this.createIfNotExist();
+                return this.save(content);
+            } else {
+                throw new Error(error);
             }
-            this.objects = readFile;
-            obj.id = await this.generateId();
-            this.objects.push(obj);
-            this.writeData(this.objects);
-            return obj.id;
-        } catch (err) {
-            console.log(err);
         }
     }
     //Devuelve el objeto con el ID buscado
-    async getById(id) {
+    async deleteById(id){
         try {
-            this.objects = await this.getAll();
-            const obj = this.objects.find(el => el.id === Number(id));
-            return obj ? obj : null;
-        } catch (err) {
-            console.log(err);
+            const data = await this.getAll();
+            const newData = data.filter(item => item.id != id);
+            await fs.promises.writeFile(this.fileName, JSON.stringify(newData, null, 2), 'utf8');
+        } catch(error){
+            throw new Error(error);
         }
     }
     //Devuelve un array con los objetos presentes en el archivo
-    async getAll() {
+    async getAll(){
         try {
-            const data = await this.readData(this.fileName);
-            return data;
-        } catch (err) {
-            console.log(err);
+            return JSON.parse(await fs.promises.readFile(this.fileName, 'utf8'));
+        } catch (error) {
+            throw new Error(error);
         }
     }
     //Elimina del archivo el objeto con el ID buscado
@@ -67,15 +57,14 @@ class Contenedor {
         }
     }
     //Elimina todos los objetos guardados en el archivo
-    async deleteAll() {
+    async deleteAll(){
         try {
-            this.objects = await this.getAll();
-            this.objects = [];
-            this.writeData(this.objects);
-        } catch (err) {
-            console.log(err);
+            await fs.promises.writeFile(this.fileName, '[]', 'utf8');
+        } catch(error){
+            throw new Error(error);
         }
     }
+    
     readData(path) {
         const data = JSON.parse(fs.readFileSync(path, 'utf-8'));
         return data;
@@ -83,6 +72,7 @@ class Contenedor {
     writeData(objects) {
         fs.writeFileSync(this.fileName, JSON.stringify(objects, null, 2));
     }
+    
 }
 
 module.exports = Contenedor;
