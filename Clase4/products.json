@@ -1,0 +1,44 @@
+[
+    {
+        "title": "Procesador Intel Core I5",
+        "price": 32900,
+        "thumbnail": "https://http2.mlstatic.com/D_NQ_NP_912167-MLA42184435197_062020-W.jpg",
+        "id": 1
+      },
+      {
+        "title": "Procesador Intel Core I7",
+        "price": 62000,
+        "thumbnail": "https://bigpoint.com.ar/wp-content/uploads/2020/06/Procesador-Intel-i7-10700.jpg",
+        "id": 2
+      },
+      {
+        "title": "Procesador Intel Core I9",
+        "price": 166290,
+        "thumbnail": "http://d3ugyf2ht6aenh.cloudfront.net/stores/854/212/products/intel-12th-gen-core-41-c87c8e51f06a04f56516371669154982-640-0.jpg",
+        "id": 3
+      },
+      {
+        "title": "Procesador AMD Ryzen 7",
+        "price": 63900,
+        "thumbnail": "https://http2.mlstatic.com/D_NQ_NP_940934-MLU47593217192_092021-O.webp",
+        "id": 4
+      },
+      {
+        "title": "Procesador AMD Ryzen 5",
+        "price": 33199,
+        "thumbnail": "https://http2.mlstatic.com/D_NQ_NP_689625-MLA50303288472_062022-O.webp",
+        "id": 5
+      },
+      {
+        "title": "Procesador AMD Ryzen 9",
+        "price": 126829,
+        "thumbnail": "https://http2.mlstatic.com/D_NQ_NP_750675-MLA44386001856_122020-O.webp",
+        "id": 6
+      },
+      {
+        "title": "procesador AMD Ryzen 3",
+        "price": 21699,
+        "thumbnail": "https://http2.mlstatic.com/D_NQ_NP_879894-MLA49923452858_052022-O.webp",
+        "id": 7
+      }
+]
