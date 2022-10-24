@@ -1,5 +1,5 @@
 const express = require('express');
-const Contenedor = require('../../43495/Clase6/index.js')
+const Contenedor = require('../../Clase4/contenedor.js')
 
 const app = express();
 const PORT = 8080;
