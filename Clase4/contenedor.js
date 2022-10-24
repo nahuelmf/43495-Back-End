@@ -61,4 +61,5 @@ const contenedor = new Contenedor("./products.json");
 //contenedor.save({ title: "Procesador AMD Athlon 3000G", price:900, thumbnail: "https://http2.mlstatic.com/D_NQ_NP_620009-MLA41419343230_042020-O.webp"});
  //contenedor.getById(2)
 //contenedor.deleteById(3)
- contenedor.deleteAll() 
+//contenedor.deleteAll() 
+contenedor.getAll()
