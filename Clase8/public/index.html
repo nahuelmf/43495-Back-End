@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://firebasestorage.googleapis.com/v0/b/pichuninuni.appspot.com/o/logo2.png?alt=media&token=8b9c12e5-c409-4723-9dd8-e17ceec74276">
+    <link rel="stylesheet" href="style.css">
+    <title>Tienda euhaN</title>
+</head>
+
+<body>
+    <header>
+    <div class="logo-flex">
+    <img src="https://firebasestorage.googleapis.com/v0/b/pichuninuni.appspot.com/o/logo2.png?alt=media&token=8b9c12e5-c409-4723-9dd8-e17ceec74276" alt="logo">
+    </div>
+    </header>
+    <form action="api/productos" method="POST">
+        <div>
+        <label for="name">Nombre del producto:<input class="texto" type="text" name="name"></label>
+    </div>
+    <div>
+        <label for="price">Precio del producto:<input class="texto" type="number" name="price"></label>
+    </div>
+    <div>
+        <label for="thumbnail">Imagen del producto:<input class="texto" type="text" name="thumbnail"></label>
+    </div>
+    <div>
+        <button class="boton" onclick="guardarProducto()" type="submit">Enviar</button>
+    </div>
+    </form>
+    <script src="./main.js"></script>
+</body>
+</html>
