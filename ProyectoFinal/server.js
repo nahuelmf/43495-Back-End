@@ -16,5 +16,6 @@ app.use('*', (req, res) => {
 	res.send({ error: -2, descripcion: `ruta '${path[0]}' método '${method}' no implementada` });
 });
 
+
 const server = app.listen(PORT, () => console.log(`Server running on PORT ${PORT}`));
 server.on('error', err => console.log(err));

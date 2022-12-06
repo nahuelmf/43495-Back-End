@@ -1,0 +1,61 @@
+> > Consigna: Utilizando Mongo Shell, crear una base de datos llamada ecommerce que contenga dos colecciones: mensajes y productos.
+
+use ecommerce
+
+1. Agregar 10 documentos con valores distintos a las colecciones mensajes y productos. El formato de los documentos debe estar en correspondencia con el que venimos utilizando en el entregable con base de datos MariaDB. 
+
+2. Definir las claves de los documentos en relación a los campos de las tablas de esa base. En el caso de los productos, poner valores al campo precio entre los 100 y 5000 pesos(eligiendo valores intermedios, ej: 120, 580, 900, 1280, 1700, 2300, 2860, 3350, 4320, 4990).
+
+db.products.insertMany([{name: 'Teclado Razer Blackwindow X Chroma QWERTY', description: 'Teclado gamer Razer', code: 111111, price: 120, stock: 100}, {name: 'Teclado Redragon Kumara K552', description: 'Teclado gamer Redragon', code: 222222, price: 580, stock: 200}, {name: 'Teclado Redragon Fizz Pro K616-RGB', description: 'Teclado gamer Redragon', code: 333333, price: 900, stock: 300}, {name: 'Teclado Corsair Series K70', description: 'Teclado gamer Corsair', code: 444444, price: 1280, stock: 400}, {name: 'Mouse Logitech G203', description: 'Mouse gamer Logitech', code: 555555, price: 1700, stock: 500}, {name: 'Mouse Logitech G502', description: 'Mouse gamer Logitech', code: 666666, price: 2300, stock: 600}, {name: 'Auriculares Logitech G935', description: 'Auriculares gamer Logitech', code: 777777, price: 2860, stock: 700}, {name: 'Auriculares Logitech G733', description: 'Auriculares gamer Logitech', code: 888888, price: 3350, stock: 800}, {name: 'Auriculares Razer Blackshark V2', description: 'Auriculares gamer Razer', code: 999999, price: 4320, stock: 900}, {name: 'Auriculares Razer Kraken', description: 'Auriculares gamer Razer', code: 101010, price: 4990, stock: 101}])
+
+db.messages.insertMany([{email: 'nahuelmf.sl@gmail.com', message: 'Hola1', date: '06 de Diciembre'}, {email: 'veronica.ulecia@gmail.com', message: 'Hola2', date: '06 de Diciembre'}, {email: 'nahuelmf.sl@gmail.com', message: 'Hola3', date: '06 de Diciembre'}, {email: 'veronica.ulecia@gmail.com', message: 'Hola4', date: '06 de Diciembre'}, {email: 'nahuelmf.sl@gmail.com', message: 'Hola5', date: '06 de Diciembre'}, {email: 'veronica.ulecia@gmail.com', message: 'Hola6', date: '06 de Diciembre'}, {email: 'nahuelmf.sl@gmail.com', message: 'Hola7', date: '06 de Diciembre'}, {email: 'veronica.ulecia@gmail.com', message: 'Hola8', date: '06 de Diciembre}, {email: 'nahuelmf.sl@gmail.com', message: 'Hola9', date: '06 de Diciembre'}, {email: 'veronica.ulecia@gmail.com', message: 'Hola10', date: '06 de Diciembre'}])
+
+3. Listar todos los documentos en cada colección.
+
+db.products.find()
+db.messages.find()
+
+4. Mostrar la cantidad de documentos almacenados en cada una de ellas.
+
+db.products.estimatedDocumentCount()
+db.messages.estimatedDocumentCount()
+
+5. Realizar un CRUD sobre la colección de productos:
+- Agregar un producto más en la colección de productos.
+
+db.products.insertOne({name: 'Microfono HyperX QuadCast', description: 'Microfono gamer HyperX', code: 121212, price: 1100, stock: 1100})
+
+- Realizar una consulta por nombre de producto específico:
+db.products.find({name: 'product6'})
+
+- Listar los productos con precio menor a 1000 pesos.
+
+db.products.find({price: {$lt: 1000}})
+
+- Listar los productos con precio entre los 1000 a 3000 pesos.
+
+db.products.find({$and: [{price: {$gte: 1000}},{price: {$lte: 3000}}]})
+
+- Listar los productos con precio mayor a 3000 pesos.
+
+db.products.find({price: {$gte: 3000}})
+
+- Realizar una consulta que traiga sólo el nombre del tercer producto más barato.
+
+db.products.find().sort({price: 1}).limit(1).skip(2)
+
+- Hacer una actualización sobre todos los productos, agregando el campo stock a todos ellos con un valor de 100.
+
+db.products.updateMany({}, {$set: {stock: 100}}, {upsert: true})
+
+- Cambiar el stock a cero de los productos con precios mayores a 4000 pesos. 
+
+db.products.updateMany({price: {$gt: 4000}}, {$set: {stock: 0}})
+
+- Borrar los productos con precio menor a 1000 pesos 
+
+db.products.deleteMany({price: {$lt: 1000}})
+
+- Crear un usuario 'pepe' clave: 'asd456' que sólo pueda leer la base de datos ecommerce. Verificar que pepe no pueda cambiar la información.
+
+db.createUser({user: 'pepe', pwd: 'asd456', roles: [{role: 'read', db: 'ecommerce'}]})
