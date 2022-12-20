@@ -23,7 +23,7 @@ db.messages.estimatedDocumentCount()
 5. Realizar un CRUD sobre la colección de productos:
 - Agregar un producto más en la colección de productos.
 
-db.products.insertOne({name: 'Microfono HyperX QuadCast', description: 'Microfono gamer HyperX', code: 121212, price: 1100, stock: 1100})
+db.products.insertOne({name: 'Microfono HyperX QuadCast', description: 'Microfono gamer HyperX', code: 121212,pic: 'https://http2.mlstatic.com/D_NQ_NP_814996-MLA51900927372_102022-O.webp' , price: 1100, stock: 1100})
 
 - Realizar una consulta por nombre de producto específico:
 db.products.find({name: 'product6'})
