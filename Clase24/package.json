@@ -2,7 +2,7 @@
   "dependencies": {
     "connect-mongo": "^4.6.0",
     "dotenv": "^16.0.0",
-    "express": "^4.17.1",
+    "express": "^4.18.2",
     "express-handlebars": "^6.0.2",
     "express-session": "^1.17.2",
     "faker": "^5.0.0",
@@ -11,7 +11,7 @@
     "normalizr": "^3.6.1",
     "socket.io": "^4.4.0"
   },
-  "name": "Clase 24",
+  "name": "backend",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
@@ -21,5 +21,5 @@
   },
   "author": "",
   "license": "ISC",
-
+  "description": "Desafio 10 - LOG-IN POR FORMULARIO"
 }
