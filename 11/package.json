@@ -7,17 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/CeciliaBPerdomo/Desafio10--LogIn.git"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/CeciliaBPerdomo/Desafio10--LogIn/issues"
-  },
-  "homepage": "https://github.com/CeciliaBPerdomo/Desafio10--LogIn#readme",
   "dependencies": {
     "connect-mongo": "^4.6.0",
     "ejs": "^3.1.8",
