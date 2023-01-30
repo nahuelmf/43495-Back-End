@@ -1,8 +1,11 @@
-
+/*Desafio 13:  Servidor con balance de carga */
 const express = require('express')
 const session = require('express-session')
 const {usuarioReg, model}  = require('./controller/usuariosMongoDB')
 const newUser = new usuarioReg()
+
+/* Server */
+const servidor = require('./src/server/server')
 
 const passport = require('passport')
 const { Strategy: LocalStrategy } = require('passport-local')
@@ -10,6 +13,12 @@ const { Strategy: LocalStrategy } = require('passport-local')
 const MongoStore = require('connect-mongo')
 const advancedOptins = { useNewUrlParser: true, useUnifiedTopology: true }
 
+/* Yargs */
+const args = require('./src/yargs')
+const apiInfo = require('./routes/apiInfo')
+/* Process */
+const apiRandom = require('./routes/apiRandom')
+const { Server } = require('http')
 
 /* database */
 const usuarios = []
@@ -123,7 +132,7 @@ app.post('/registrarse', async(req, res) => {
    await newUser.guardar(req.body)
     res.redirect('/')
 })
-app.get('/home', (req,res)=>{
+app.get('/home', (req,res) => {
     const { user: usuario } = req.session.passport
     res.render('productos', {usuario, productos})
 } )
@@ -135,9 +144,14 @@ app.post('/logout', (req, res) => {
       })
 })
 
-const PORT = process.env.PORT || 8080
+app.use(apiInfo)
+app.use(apiRandom)
+
+const PORT = args._[0] || 8080;
 
 const srv = server.listen(PORT, () => {
-    console.log(`Servidor escuchando en el puerto ${srv.address().port}`)
+    console.log(`Servidor escuchando en el puerto ${PORT}`)
 })
 srv.on('error', error => console.log(`Error en el servidor ${error}`))
+
+const serv = new servidor()
