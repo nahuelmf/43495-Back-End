@@ -1,7 +1,7 @@
 {
-  "name": "desafio10--login",
+  "name": "desafio14",
   "version": "1.0.0",
-  "description": "Login por formulario",
+  "description": "Loggers, gzip y análisis de performance",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
