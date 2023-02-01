@@ -1,0 +1,170 @@
+/*Desafio 14:  Loggers, GZIP, y analisis de performance */
+
+const express = require('express')
+const session = require('express-session')
+const {usuarioReg, model}  = require('./controller/usuariosMongoDB')
+const newUser = new usuarioReg()
+
+const passport = require('passport')
+const { Strategy: LocalStrategy } = require('passport-local')
+
+const MongoStore = require('connect-mongo')
+const advancedOptins = { useNewUrlParser: true, useUnifiedTopology: true }
+
+/* Yargs */
+const args = require('./src/yargs')
+const logger = require('./logger.js')
+
+const apiInfo = require('./routes/apiInfo')
+/* Process */
+const apiRandom = require('./routes/apiRandom')
+
+/* database */
+const usuarios = []
+
+/* passport */
+passport.use('registrarse', new LocalStrategy({
+    passReqToCallback: true
+}, (req, username, password, done) => {
+
+    const usuario = usuarios.find(usuario => usuarios.nombre == nombre)
+    if(usuario){ return done('Usuario ya registrado')}
+    
+    const user = {
+        username,
+        password
+    }
+    usuarios.push(user)
+    return done(null, user)
+}))
+
+passport.use('login', new LocalStrategy.Strategy({
+    usernameField: "usuario",
+    passwordField: "password",
+    passReqToCallback: true
+}, async (req, usuario, password, done) => {
+    const user = await model.findOne({usuario})
+    if(!user){
+        return done(null, false)
+    }
+    done(null, user)
+}))
+
+passport.serializeUser(function (user, done){
+    done(null, user)
+})
+
+passport.deserializeUser( async function(username, done){
+    const usuario = await model.findOne({username})
+    done(null, usuario)
+})
+
+const app = express()
+const server = require('http').Server(app)
+const io = require('socket.io')(server)
+
+/* ------------------------------------------------------------------- */
+/*              Persistencia database                                  */
+/* ------------------------------------------------------------------- */
+app.use(session({
+    store: MongoStore.create({ 
+        mongoUrl: 'mongodb+srv://nahuelmf:nawueh0731@cluster0.irezwt9.mongodb.net/test',
+        mongoOptions: advancedOptins
+    }), 
+    secret: 'sh',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 100000 }
+}))
+
+app.use(passport.initialize())
+app.use(passport.session())
+
+let messages = []
+const productos = []
+
+app.use(express.urlencoded({ extended: true }))
+app.use(express.static('public'))
+app.set('views', './views')
+app.set('view engine', 'ejs')
+
+/* Auth */
+function isAuth(req, res, next) {
+    if (req.isAuthenticated()){
+        next()
+    } else {
+        res.redirect('/login')
+    }
+}
+
+app.get('/home', (req,res)=> { 
+    let productos = []    
+    const { user: usuario } = req.session.passport
+    res.render('productos', {usuario, productos})
+} ) 
+
+app.post('/productos', (req, res) => {
+    const {nombre, precio, foto } = req.body
+    
+    if (nombre === '') {
+        logger.error('El nombre del producto no puede estar vacío')
+        res.send('El nombre del producto no puede estar vacío.')
+    }
+
+    if (precio === ''){
+        logger.error('El precio del producto no puede estar vacío')
+        res.send('El precio del producto no puede estar vacío.')
+    }
+
+    if (isNaN(precio)){
+        logger.error('El precio del producto debe ser un valor númerico')
+        res.send('El precio del producto debe ser un valor númerico')
+    }
+
+    productos.push(req.body)
+    console.log(productos)
+    res.redirect('/home')
+})
+
+io.on('connection', function(socket){
+    console.log('Un cliente se ha conectado')
+    /* Emitir todos los mensajes a un cliente nuevo */
+    socket.emit('messages', messages)
+
+    socket.on('new-message', function(data){
+        /* Agregar mensajes a array */
+        messages.push(data)
+
+        /* Emitir a todos los clientes */ 
+        io.sockets.emit('messages', messages)
+    })
+})
+
+
+/* Login */ 
+app.post('/login', passport.authenticate("login", {successRedirect: "/home", failureRedirect: "/registrarse", passReqToCallback: true}))
+
+app.get('/registrarse', (req, res)=>{
+    res.redirect('registrarse.html')
+})
+app.post('/registrarse', async(req, res) => {
+   await newUser.guardar(req.body)
+    res.redirect('/')
+})
+
+app.post('/logout', (req, res) => {
+    //session destroy
+    req.logout(function(err) {
+        if (err) { return next(err); }
+        res.redirect('/');
+      })
+})
+
+app.use(apiInfo)
+app.use(apiRandom)
+
+const PORT = args.port
+const srv = server.listen(PORT, () => {
+    console.log(`Servidor escuchando en el puerto ${PORT}`)
+})
+srv.on('error', error => console.log(`Error en el servidor ${error}`))
