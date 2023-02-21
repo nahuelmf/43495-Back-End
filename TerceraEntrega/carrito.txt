@@ -1,0 +1,1 @@
+[{"id":1, "timestamp":1650760299312, "productos":[{"nombre":"Micrófono HyperX QuadCast condensador multipatrón negro","descripcion":"Micrófono HyperX", "codigo":"2569", "foto": "https://http2.mlstatic.com/D_NQ_NP_814996-MLA51900927372_102022-O.webp", "precio":"39670", "stock":"15"}]}]
