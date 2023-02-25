@@ -1,49 +1,86 @@
-const express = require('express');
-const res = require('express/lib/response');
-const routerProductos = express.Router()
+const logger = require('./utils/loggerWinston');
+const sendMail = require('./nodemailer&twilio/nodemailer.js');
 
-const container = require('./contenedor');
+const getRoute = (req, res) => {
+  logger.info('getRoute');
+  res.render('login', {});
+};
 
-const prodDisponibles = require('./testproductos')
-const datos = new container('./productos.txt')
+const getLogin = (req, res) => {
+  logger.info('getLogin');
 
-/* Mostrar productos */
-routerProductos.get('/', async (req, res) => {
-   let productos = await prodDisponibles()
-   res.render('productos', { productos })
-})
+  if (req.isAuthenticated()) {
+    const { username, password } = req.user;
+    const user = { username, password };
+    res.render('profileUser', { user });
+  } else {
+    res.render('login', {});
+  }
+};
 
-/* Mostrar producto por id */
-routerProductos.get('/:id', async(req, res) =>{
-    const { id } = req.params
-    let productos = await prodDisponibles()
-    let prodId = productos.filter(productos => productos.id === parseInt(id))
-    res.send(prodId)
-})
+const getFailLogin = (req, res) => {
+  logger.info('getFailLogin');
+  res.render('failLogin', {});
+};
 
-/*Guardar*/
-routerProductos.post('/guardar', async(req, res) => {
-    let prod = req.body
-    prod.timestamp = Date.now()
-    console.log(prod)
-    datos.escribir(prod)
-    res.redirect('/productos')
-})
+const getSignUp = (req, res) => {
+  logger.info('getSignUp');
 
-/* Borrar por id*/
-routerProductos.delete('/borrar/:id', async(req, res) =>{
-    const { id } = req.params
-    datos.borrarPorId(id)
-    res.json(await prodDisponibles())
-    //res.send('/productos')
-}) 
+  if (req.isAuthenticated()) {
+    const { username, password, name, address, age, phone, url } = req.user;
+    const user = { username, password, name, address, age, phone, url };
+    res.render('profileUser', { user });
+  } else {
+    res.render('signup');
+  }
+};
 
-/* Modificar un producto */
-routerProductos.put('/modificar/:id', async(req, res) => {
-    let prodNuevo = req.body
-    const { id } = req.params
-    datos.modificarPorId(prodNuevo, id)
-    //res.redirect('/productos')
-})
+const getFailSignUp = (req, res) => {
+  logger.info('getFailSignUp');
 
-module.exports = routerProductos
+  res.render('failSignUp', {});
+};
+
+const getLogout = (req, res) => {
+  logger.info('getLogout');
+  const { username, password } = req.user;
+  const user = { username, password };
+  req.session.destroy((err) => {
+    if (err) {
+      res.send('No se pudo deslogear');
+    } else {
+      res.render('logout', { user });
+    }
+  });
+};
+
+const failRoute = (req, res) => {
+  logger.warn('failRoute');
+  res.render('failRoute', {});
+
+  res.status(404);
+};
+
+const postLogin = (req, res) => {
+  logger.info('postLogin');
+
+  const { username, password, name, address, age, phone, url } = req.user;
+  const user = { username, password, name, address, age, phone, url };
+  res.render('profileUser', { user });
+};
+
+const postSignUp = (req, res) => {
+  logger.info('postSignUp');
+
+  const { username, password, name, address, age, phone, url } = req.user;
+  const user = { username, password, name, address, age, phone, url };
+  sendMail(username);
+  res.render('successSignUp', { user });
+};
+
+const getInfo = (req, res) => {
+  logger.info('getInfo');
+  res.render('info', {});
+};
+
+module.exports = { getRoute, getLogin, getInfo, getFailLogin, getSignUp, getFailSignUp, failRoute, getLogout, postLogin, postSignUp };

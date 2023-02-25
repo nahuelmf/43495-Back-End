@@ -1,62 +1,182 @@
-const express = require ('express')
+const express = require('express');
+const app = express();
+const MongoStore = require('connect-mongo');
+const session = require('express-session');
+const httpServer = require('http').createServer(app);
+const mongoose = require('mongoose');
+const compression = require('compression');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const Users = require('./models/modelUser.js');
+const bcrypt = require('bcrypt');
+const routes = require('./routes.js');
 
-/* Rutas */
-// Productos
-const routes = require('./routes')
-// Carrito
-const routesCarrito = require('./routesCarrito')
-// Autenticación
-const routerAuth = require('./routes/auth.routes')
+if (process.env.MODE != 'production') {
+  require('dotenv').config();
+}
 
-const app = express()
-const morgan = require('morgan')
+const PORT = process.env.PORT;
+const MODE = process.env.MODE;
+const MONGO_URL = process.env.MONGO_URL;
 
-/* Autenticación */
-const passport = require('passport') 
-const session = require('express-session')
-const mongoStore = require('connect-mongo')
-const MongoStore = require('connect-mongo')
-require('./src/auth/passport/localAuth')
-
-require('dotenv').config()
-
-// Middlewares
-app.use(morgan('dev'))
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(compression());
+app.use('/public', express.static(__dirname + '/public'));
 
+// handlebars settings
+const { engine } = require('express-handlebars');
+
+app.set('view engine', 'hbs');
+app.set('views', './views');
+app.engine(
+  'hbs',
+  engine({
+    extname: '.hbs',
+    defaultLayout: 'index.hbs',
+    layoutsDir: __dirname + '/views/layouts',
+    partialsDir: __dirname + '/views/partials',
+  })
+);
+
+// MONGOOSE CONNECTION
+async function connectMG() {
+  try {
+    await mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true });
+    console.log('Conectado a mongoDB!✅');
+  } catch (e) {
+    console.log(e);
+    throw 'can not connect to the db❌';
+  }
+}
+connectMG();
+
+// const products = new ProductosDaoMongoDB();
+// const msgs = new MensajesDaoMongoDB();
+
+//passport
+function isValidPassword(user, password) {
+  return bcrypt.compareSync(password, user.password);
+}
+
+function createHash(password) {
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(8), null);
+}
+
+passport.use(
+  'login',
+  new LocalStrategy((username, password, done) => {
+    Users.findOne({ username }, (err, user) => {
+      if (err) return done(err);
+
+      if (!user) {
+        console.log('❌User Not Found with username ' + username);
+        return done(null, false);
+      }
+      if (!isValidPassword(user, password)) {
+        console.log('Invalid Password❌');
+        return done(null, false);
+      }
+      return done(null, user);
+    });
+  })
+);
+
+passport.use(
+  'signup',
+  new LocalStrategy(
+    {
+      passReqToCallback: true,
+    },
+    (req, username, password, done) => {
+      Users.findOne({ username: username }, function (err, user) {
+        if (err) {
+          console.log('❌error in signup' + err);
+          return done(err);
+        }
+        if (user) {
+          console.log('❌user already exists');
+          return done(null, false);
+        }
+        const newUser = {
+          username: username,
+          password: createHash(password),
+          name: req.body.name,
+          address: req.body.address,
+          age: req.body.age,
+          phone: req.body.phone,
+          url: req.body.url,
+        };
+        Users.create(newUser, (err, userWithId) => {
+          if (err) {
+            console.log('❌error in saving user:' + err);
+            return done(err);
+          }
+          console.log('user registration succesful:', newUser);
+          return done(null, userWithId);
+        });
+      });
+    }
+  )
+);
+
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+passport.deserializeUser((id, done) => {
+  Users.findById(id, done);
+});
+
+// //SESSION WITH MONGO
 app.use(
-    session({
-        secret: "palabrasecreta",
-        resave: false, 
-        saveUninitialized: false,
-        store: MongoStore.create({
-            mongoUrl: process.env.MONGO_STORE_URI,
-        })
-    })
-)
+  session({
+    store: MongoStore.create({
+      mongoUrl: MONGO_URL,
+      mongoOptions: {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      },
+      ttl: 60,
+    }),
+    secret: 'secretKey',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 60000 },
+  })
+);
 
-app.use(passport.initialize())
-app.use(passport.session())
+app.use(passport.initialize()); //inicializamos passport dentro de express
+app.use(passport.session()); //meto la sesion de passport adentro de la app (serializ y deserializ)
 
-app.use(express.static('public'))
+//-----------ROUTES
+//INDEX
+app.get('/', routes.getRoute);
 
-app.set('views', './views')
-app.set('view engine', 'ejs')
+//LOGIN
+app.get('/login', routes.getLogin);
+app.get('/failLogin', routes.getFailLogin);
+app.post('/login', passport.authenticate('login', { failureRedirect: '/failLogin' }), routes.postLogin);
 
-app.use('/productos', routes)
-app.use('/carrito', routesCarrito)
-app.use('/', routerAuth)
+//SIGNUP
+app.get('/signup', routes.getSignUp);
+app.get('/failSignUp', routes.getFailSignUp);
+app.post('/signup', passport.authenticate('signup', { failureRedirect: '/failSignUp' }), routes.postSignUp);
 
-/* Server listen */
-app.get('/', (req, res) => {
-    return res.render('home')
-})
+//LOGOUT
+app.get('/logout', routes.getLogout);
 
-const PORT = process.env.PORT || 8080
+//GET INFO
+app.get('/info', routes.getInfo);
 
-/* Server listen */
-const srv = app.listen(PORT, () => {
-    console.log(`Escuchando en el puerto ${srv.address().port}`)
-})
-srv.on('error', error => console.log(`Error en el servidor ${error}`))
+app.get('/datos', (req, res) => {
+  console.log(`port: ${PORT} -> Fyh: ${Date.now()}`);
+  res.send(`Servidor express <span style="color:blueviolet;">(Nginx)</span> en ${PORT} - 
+    <b>PID ${process.pid}</b> - ${new Date().toLocaleString()}`);
+});
+
+//FAILROUTE
+app.get('*', routes.failRoute);
+
+httpServer.listen(PORT, () => {
+  console.log('Servidor http escuchando en el puerto http://localhost:' + PORT);
+});

@@ -1,0 +1,8 @@
+## Desafio Gzip y Loggers:
+
+1. Se incorporo gzip a toda la app.
+2. Se agrego ruta /info.
+3. Se agrego el logger Winston y se remplazaron todos los console.log.
+
+4. artillery quick --count 50 -n 40 http://localhost:8081/info > result_conConsoleLog.txt
+5. resultados en result_conConsoleLog.txt y result_sinConsoleLog.txt
