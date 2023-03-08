@@ -1,180 +1,171 @@
-/*Desafio 17:  DIVIDIR EN CAPAS NUESTRO PROYECTO */
+const express = require('express');
+const app = express();
 
-const express = require('express')
-const session = require('express-session')
-const morgan = require('morgan')
-//require('./database/database')
-//require('./src/auth/passport/localAuth')
-
-require('dotenv').config()
-
-const {usuarioReg, model}  = require('./controller/usuariosMongoDB')
-const newUser = new usuarioReg()
-
-const passport = require('passport')
-const { Strategy: LocalStrategy } = require('passport-local')
-
-const MongoStore = require('connect-mongo')
-const advancedOptins = { useNewUrlParser: true, useUnifiedTopology: true }
-
-/* Yargs */
-const args = require('./src/yargs')
-const apiInfo = require('./routes/apiInfo')
-/* Process */
-const apiRandom = require('./routes/apiRandom')
-
-// Autenticación
-const routerAuth = require('./routes/auth.routes')
-
-/* database */
-const usuarios = []
-
-/* Chequeo de password */
-const comparePass = require('./utils/bcryptPassword')
-const res = require('express/lib/response')
-
-/* passport */
-passport.use('registrarse', new LocalStrategy({
-    passReqToCallback: true
-}, (req, username, password, done) => {
-
-    const usuario = usuarios.find(usuario => usuarios.nombre == nombre)
-    if(usuario){ return done('Usuario ya registrado')}
-    
-    const user = {
-        username,
-        password
-    }
-    usuarios.push(user)
-    return done(null, user)
-}))
-
-passport.use('login', new LocalStrategy/*.Strategy*/({
-    usernameField: "usuario",
-    passwordField: "password",
-    passReqToCallback: true,
-}, async (req, usuario, password, done) => {
-    const user = await model.findOne({ usuario })
-    console.log(user)
-    if(!user){
-        return done(null, false, {message: 'El usuario no existe'})
-    }
-    console.log(password)
-    /*if(!comparePass(password, user.password)){
-        return done(null, false, {message: 'Las contraseñas no coinciden'})
-    }*/
-    if (password === user.password) {
-        done(null, user, {message: 'Usuario ok'})
-    } /*else {
-        res.json('Usuario no encontrado')
-    } */
-}))
-
-passport.serializeUser(function (user, done){
-    done(null, user)
-})
-
-passport.deserializeUser( async function(username, done){
-    const usuario = await model.findOne({username})
-    done(null, usuario)
-})
-
-
-const app = express()
-const server = require('http').Server(app)
-const io = require('socket.io')(server)
-
-/* ------------------------------------------------------------------- */
-/*              Persistencia database                                  */
-/* ------------------------------------------------------------------- */
-app.use(session({
-    store: MongoStore.create({ 
-        mongoUrl: 'mongodb+srv://nahuelmf:nawueh0731@cluster0.irezwt9.mongodb.net/test',
-        mongoOptions: advancedOptins
-    }), 
-    secret: 'sh',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { maxAge: 100000 }
-}))
-
-app.use(passport.initialize())
-app.use(passport.session())
-
-let messages = []
-const productos = []
-
-// Middlewares
-app.use(morgan('dev'))
-app.use(express.urlencoded({ extended: true }))
-
-app.use(express.static('public'))
-app.set('views', './views')
-app.set('view engine', 'ejs')
-
-app.use('/', routerAuth)
-
-/* Auth */
-function isAuth(req, res, next) {
-    if (req.isAuthenticated()){
-        next()
-    } else {
-        res.redirect('/login')
-    }
+if (process.env.MODE != 'production') {
+  require('dotenv').config();
 }
 
+const PORT = process.env.PORT;
+const MODE = process.env.MODE;
+const MONGO_URL = process.env.MONGO_URL;
 
-app.post('/productos', (req, res) => {
-    productos.push(req.body)
-    console.log(productos)
-    res.redirect('/')
-})
+const httpServer = require('http').createServer(app);
 
-io.on('connection', function(socket){
-    console.log('Un cliente se ha conectado')
-    /* Emitir todos los mensajes a un cliente nuevo */
-    socket.emit('messages', messages)
+//COMPRESION GZIP
+const compression = require('compression');
+app.use(compression());
 
-    socket.on('new-message', function(data){
-        /* Agregar mensajes a array */
-        messages.push(data)
+// const io = require('socket.io')(httpServer);
+// const MensajesDaoMongoDB = require('./daos/mensajesDaoMongoDB.js');
+// const ProductosDaoMongoDB = require('./daos/productosDaoMongoDB.js');
+const mongoose = require('mongoose');
 
-        /* Emitir a todos los clientes */ 
-        io.sockets.emit('messages', messages)
-    })
-})
+const routerDatos = require('./ROUTES-LAYER/datos.js');
 
+const session = require('express-session');
+const MongoStore = require('connect-mongo');
 
-/* Login */ 
-app.post('/login', passport.authenticate("login", {successRedirect: "/home", failureRedirect: "/error", passReqToCallback: true}))
+//passport
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const Users = require('./models/users.js');
+const bcrypt = require('bcrypt');
 
-app.get('/registrarse', (req, res)=>{
-    res.redirect('registrarse.html')
-})
+const { engine } = require('express-handlebars');
 
-app.post('/registrarse', async(req, res) => {
-   await newUser.guardar(req.body)
-    res.redirect('/')
-})
-app.get('/home', (req,res)=>{
-    const { user: usuario } = req.session.passport
-    let productos = []
-    res.render('productos', {usuario, productos})
-} )
-app.post('/logout', (req, res) => {
-    //session destroy
-    req.logout(function(err) {
-        if (err) { return next(err); }
-        res.redirect('/');
-      })
-})
+app.use(express.json());
+app.use(session({ secret: 'secreto' })); //!
+app.use(express.urlencoded({ extended: true }));
+app.enable('trust proxy');
 
-app.use(apiInfo)
-app.use(apiRandom)
+app.use('/public', express.static(__dirname + '/public'));
 
-const PORT = args.port
+app.use('/', routerDatos);
 
-const srv = server.listen(PORT, () => {
-    console.log(`Servidor escuchando en el puerto ${PORT}`)
-})
-srv.on('error', error => console.log(`Error en el servidor ${error}`))
+// handlebars settings
+app.set('view engine', 'hbs');
+app.set('views', './views');
+app.engine(
+  'hbs',
+  engine({
+    extname: '.hbs',
+    defaultLayout: 'index.hbs',
+    layoutsDir: __dirname + '/views/layouts',
+    partialsDir: __dirname + '/views/partials',
+  })
+);
+
+//fork
+const { fork } = require('child_process');
+
+// MONGOOSE CONNECTION
+async function connectMG() {
+  try {
+    await mongoose.connect(MONGO_URL, { useNewUrlParser: true });
+    console.log('Conectado a mongo!');
+  } catch (e) {
+    console.log(e);
+    throw 'can not connect to the db';
+  }
+}
+
+connectMG();
+
+// const products = new ProductosDaoMongoDB();
+// const msgs = new MensajesDaoMongoDB();
+
+// //config passport
+function isValidPassword(user, password) {
+  return bcrypt.compareSync(password, user.password);
+}
+
+function createHash(password) {
+  return bcrypt.hashSync(password, bcrypt.genSaltSync(10), null);
+}
+
+passport.use(
+  'login',
+  new LocalStrategy((username, password, done) => {
+    Users.findOne({ username }, (err, user) => {
+      if (err) return done(err);
+
+      if (!user) {
+        console.log('User Not Found with username ' + username);
+        return done(null, false);
+      }
+      if (!isValidPassword(user, password)) {
+        console.log('Invalid Password');
+        return done(null, false);
+      }
+      return done(null, user);
+    });
+  })
+);
+
+passport.use(
+  'signup',
+  new LocalStrategy(
+    {
+      passReqToCallback: true,
+    },
+    (req, username, password, done) => {
+      Users.findOne({ username: username }, function (err, user) {
+        if (err) {
+          console.log('error in signup' + err);
+          return done(err);
+        }
+        if (user) {
+          console.log('user already exists');
+          return done(null, false);
+        }
+        const newUser = {
+          username: username,
+          password: createHash(password),
+        };
+        Users.create(newUser, (err, userWithId) => {
+          if (err) {
+            console.log('error in saving user:' + err);
+            return done(err);
+          }
+          console.log('user', user);
+          console.log('user registration succesful');
+          return done(null, userWithId);
+        });
+      });
+    }
+  )
+);
+
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+passport.deserializeUser((id, done) => {
+  Users.findById(id, done);
+});
+
+// //SESSION WITH MONGO
+app.use(
+  session({
+    store: MongoStore.create({
+      mongoUrl: MONGO_URL,
+      mongoOptions: {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      },
+      ttl: 60,
+    }),
+    secret: 'secretKey',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 60000 },
+  })
+);
+
+app.use(passport.initialize()); //inicializamos passport dentro de express
+app.use(passport.session()); //meto la sesion de passport adentro de la app (serializ y deserializ)
+
+app.enable('trust proxy');
+
+httpServer.listen(PORT, () => {
+  console.log('Servidor http escuchando en el puerto http://localhost:' + PORT);
+});
