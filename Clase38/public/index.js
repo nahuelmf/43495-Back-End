@@ -1,7 +1,7 @@
 //0)conexion socket (front)
 const socket = io();
 socket.on('connect', () => {
-  console.log('me conecte');
+  console.log('me conecteeeee');
 });
 
 //2) usuario completa form con producto nuevo. El envio lo hace el onclick en el form
@@ -24,15 +24,15 @@ const render = (data) => {
     <td class='align-middle text-center'>${obj.title}</td>
     <td class='align-middle text-center'>$${obj.price}</td>
     <td class='align-middle text-center'><img src='${obj.thumbnail}' width='50' height='auto' class='img-fluid' /></td>
+    <td class='align-middle text-center'><button type="button" class="btn btn-success">Agregar al carrito</button></td>
     </tr>`;
   });
-  console.log('html:', html);
-  document.getElementById('productos').innerHTML = html;
+  document.getElementById('productsList').innerHTML = html;
+  //productsList viene de main.hbs - <tbody id='productsList'> // linea 40
 };
 
 //4) atrapar desde el front el array de productos actualizado
 socket.on('products', (data) => {
-  console.log('data:', data);
   render(data);
 });
 
