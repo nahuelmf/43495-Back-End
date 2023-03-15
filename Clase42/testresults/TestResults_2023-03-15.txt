@@ -1,0 +1,93 @@
+node:internal/child_process/serialization:127
+    const string = JSONStringify(message) + '\n';
+                   ^
+
+TypeError: Converting circular structure to JSON
+    --> starting at object with constructor 'Socket'
+    |     property '_httpMessage' -> object with constructor 'ClientRequest'
+    --- property 'socket' closes the circle
+    at stringify (<anonymous>)
+    at writeChannelMessage (node:internal/child_process/serialization:127:20)
+    at process.target._send (node:internal/child_process:839:17)
+    at process.target.send (node:internal/child_process:739:19)
+    at reportSuccess (C:\Users\medic\Desktop\43495\Clase42\node_modules\jest-worker\build\workers\processChild.js:59:11)
+FAIL test/controllers/product.test.js
+  ● [GET] api/productos/:non-existent-id returns product not found
+
+    TypeError: Cannot read properties of undefined (reading 'status')
+
+       5 |
+       6 |     const response = await axiosGet(nonExistentProductUrl);
+    >  7 |     expect(response.status).toBe(400)
+         |                     ^
+       8 |     expect(response.data).toHaveProperty('error', 'product not found')
+       9 |
+      10 | });
+
+      at Object.status (test/controllers/product.test.js:7:21)
+
+  ● [PUT] api/productos/:non-existent-id returns product not found or invalid body content
+
+    TypeError: Cannot read properties of undefined (reading 'status')
+
+      14 |     const body = {}
+      15 |     const response = await axiosPut(nonExistentProductUrl, body);
+    > 16 |     expect(response.status).toBe(404)
+         |                     ^
+      17 |     expect(response.data).toHaveProperty('error', 'product not found or invalid body content.')
+      18 |
+      19 | });
+
+      at Object.status (test/controllers/product.test.js:16:21)
+
+node:internal/child_process/serialization:127
+    const string = JSONStringify(message) + '\n';
+                   ^
+
+TypeError: Converting circular structure to JSON
+    --> starting at object with constructor 'Socket'
+    |     property '_httpMessage' -> object with constructor 'ClientRequest'
+    --- property 'socket' closes the circle
+    at stringify (<anonymous>)
+    at writeChannelMessage (node:internal/child_process/serialization:127:20)
+    at process.target._send (node:internal/child_process:839:17)
+    at process.target.send (node:internal/child_process:739:19)
+    at reportSuccess (C:\Users\medic\Desktop\43495\Clase42\node_modules\jest-worker\build\workers\processChild.js:59:11)
+node:internal/child_process/serialization:127
+    const string = JSONStringify(message) + '\n';
+                   ^
+
+TypeError: Converting circular structure to JSON
+    --> starting at object with constructor 'Socket'
+    |     property '_httpMessage' -> object with constructor 'ClientRequest'
+    --- property 'socket' closes the circle
+    at stringify (<anonymous>)
+    at writeChannelMessage (node:internal/child_process/serialization:127:20)
+    at process.target._send (node:internal/child_process:839:17)
+    at process.target.send (node:internal/child_process:739:19)
+    at reportSuccess (C:\Users\medic\Desktop\43495\Clase42\node_modules\jest-worker\build\workers\processChild.js:59:11)
+node:internal/child_process/serialization:127
+    const string = JSONStringify(message) + '\n';
+                   ^
+
+TypeError: Converting circular structure to JSON
+    --> starting at object with constructor 'Socket'
+    |     property '_httpMessage' -> object with constructor 'ClientRequest'
+    --- property 'socket' closes the circle
+    at stringify (<anonymous>)
+    at writeChannelMessage (node:internal/child_process/serialization:127:20)
+    at process.target._send (node:internal/child_process:839:17)
+    at process.target.send (node:internal/child_process:739:19)
+    at reportSuccess (C:\Users\medic\Desktop\43495\Clase42\node_modules\jest-worker\build\workers\processChild.js:59:11)
+FAIL test/controllers/other.test.js
+  ● Test suite failed to run
+
+    Jest worker encountered 4 child process exceptions, exceeding retry limit
+
+      at ChildProcessWorker.initialize (node_modules/jest-worker/build/workers/ChildProcessWorker.js:170:21)
+
+Test Suites: 2 failed, 2 total
+Tests:       2 failed, 2 total
+Snapshots:   0 total
+Time:        3.927 s
+Ran all test suites.

@@ -25,14 +25,14 @@ Mostrará los resultados por terminal y además guardará en la carpeta **_testr
 Por ejemplo, el día 13 de Julio del 2022 corrí los tests, se generó **`TestResults_2022-07-13.txt`** en la carpeta `testresults`
 
 ```console
-cat testresults/TestResults_2022-07-13.txt
+cat testresults/TestResults_2023-03-15.txt
                                                        
 PASS test/controllers/other.test.js
 PASS test/controllers/product.test.js
 
-Test Suites: 2 passed, 2 total
-Tests:       3 passed, 3 total
+Test Suites: 2 failed, 2 total
+Tests:       2 failed, 2 total
 Snapshots:   0 total
-Time:        0.794 s, estimated 1 s
+Time:        3.927 s
 Ran all test suites.
 ```
